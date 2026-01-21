@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playwright Reporter Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #1f2937;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        
+        h1 {
+            color: white;
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 20px;
+            font-weight: 500;
+        }
+        
+        .wizard-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .progress-bar {
+            display: flex;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 10px;
+        }
+        
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            right: -50%;
+            height: 4px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+        
+        .progress-step:last-child::before {
+            display: none;
+        }
+        
+        .progress-step.active::before {
+            background: #667eea;
+        }
+        
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+        
+        .progress-step.active .step-circle {
+            background: #667eea;
+            color: white;
+            transform: scale(1.2);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .progress-step.completed .step-circle {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        
+        .progress-step.active .step-label {
+            color: #667eea;
+        }
+        
+        .step-content {
+            padding: 50px;
+            min-height: 500px;
+        }
+        
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .step.active {
+            display: block;
+        }
+        
+        .step-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .step-description {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        
+        input[type="text"],
+        input[type="color"],
+        select {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .color-input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        input[type="color"] {
+            width: 80px;
+            height: 60px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .color-preview {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .checkbox-item:hover {
+            background: #f3f4f6;
+            border-color: #667eea;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+        
+        .checkbox-item label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .theme-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .theme-card {
+            padding: 20px;
+            border: 3px solid #e5e7eb;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .theme-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .theme-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .theme-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .theme-name {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #f3f4f6;
+        }
+        
+        button {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #f0f4ff;
+        }
+        
+        .preview-section {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .preview-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+        
+        .config-preview {
+            background: #1f2937;
+            color: #10b981;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            overflow-x: auto;
+        }
+        
+        .config-key {
+            color: #60a5fa;
+        }
+        
+        .config-string {
+            color: #fbbf24;
+        }
+        
+        .final-step {
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 120px;
+            margin-bottom: 30px;
+            animation: scaleIn 0.6s ease;
+        }
+        
+        .download-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .download-card {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .download-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .download-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .download-title {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        
+        .download-desc {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .copy-notification.show {
+            transform: translateX(0);
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎭</div>
+            <h1>Playwright Reporter Setup</h1>
+            <div class="subtitle">Створіть свій власний репортер за 4 кроки</div>
+        </div>
+        
+        <div class="wizard-container">
+            <div class="progress-bar">
+                <div class="progress-step active" data-step="1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Основне</div>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Дизайн</div>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Налаштування</div>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Завершення</div>
+                </div>
+            </div>
+            
+            <div class="step-content">
+                <!-- Step 1: Basic Info -->
+                <div class="step active" data-step="1">
+                    <h2 class="step-title">🏢 Основна інформація</h2>
+                    <p class="step-description">Розкажіть нам про ваш проект</p>
+                    
+                    <div class="form-group">
+                        <label for="companyName">Назва компанії</label>
+                        <input type="text" id="companyName" placeholder="Наприклад: Acme Corp" value="Моя Компанія">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="projectName">Назва проекту</label>
+                        <input type="text" id="projectName" placeholder="Наприклад: E2E Test Suite" value="Test Suite">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reportTitle">Заголовок звіту</label>
+                        <input type="text" id="reportTitle" placeholder="Наприклад: Test Execution Report" value="Test Execution Report">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="outputDir">Папка для звітів</label>
+                        <input type="text" id="outputDir" placeholder="Наприклад: test-results/my-report" value="test-results/enterprise-report">
+                    </div>
+                </div>
+                
+                <!-- Step 2: Design -->
+                <div class="step" data-step="2">
+                    <h2 class="step-title">🎨 Дизайн та брендинг</h2>
+                    <p class="step-description">Налаштуйте зовнішній вигляд вашого репортера</p>
+                    
+                    <div class="form-group">
+                        <label>Тема оформлення</label>
+                        <div class="theme-selector">
+                            <div class="theme-card selected" data-theme="light">
+                                <div class="theme-icon">☀️</div>
+                                <div class="theme-name">Світла</div>
+                            </div>
+                            <div class="theme-card" data-theme="dark">
+                                <div class="theme-icon">🌙</div>
+                                <div class="theme-name">Темна</div>
+                            </div>
+                            <div class="theme-card" data-theme="auto">
+                                <div class="theme-icon">🌓</div>
+                                <div class="theme-name">Авто</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="primaryColor">Основний колір</label>
+                        <div class="color-input-group">
+                            <input type="color" id="primaryColor" value="#667eea">
+                            <div class="color-preview" id="colorPreview">#667eea</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="logoUpload">Логотип компанії (опціонально)</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="logoUpload" accept="image/*" style="display: none;">
+                            <button type="button" class="file-upload-btn" onclick="document.getElementById('logoUpload').click()">
+                                📤 Завантажити логотип
+                            </button>
+                            <div id="logoPreview" class="logo-preview" style="display: none;">
+                                <img id="logoImage" src="" alt="Logo">
+                                <button type="button" class="remove-logo-btn" onclick="removeLogo()">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Settings -->
+                <div class="step" data-step="3">
+                    <h2 class="step-title">⚙️ Налаштування</h2>
+                    <p class="step-description">Оберіть, що включати в звіт</p>
+                    
+                    <div class="form-group">
+                        <label>Що показувати в звіті?</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showPassed" checked>
+                                <label for="showPassed">✅ Пройдені тести</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showSkipped" checked>
+                                <label for="showSkipped">⏭️ Пропущені тести</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="showEnvInfo" checked>
+                                <label for="showEnvInfo">💻 Інфо про систему</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Що включати в звіт?</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeScreenshots" checked>
+                                <label for="includeScreenshots">📸 Скріншоти</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeVideos" checked>
+                                <label for="includeVideos">🎥 Відео</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="includeTraces" checked>
+                                <label for="includeTraces">🔍 Traces</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-section">
+                        <div class="preview-title">👁️ Попередній перегляд конфігурації</div>
+                        <div class="config-preview" id="configPreview"></div>
+                    </div>
+                </div>
+                
+                <!-- Step 4: Finish -->
+                <div class="step" data-step="4">
+                    <div class="final-step">
+                        <div class="success-icon">🎉</div>
+                        <h2 class="step-title">Готово!</h2>
+                        <p class="step-description">Ваш репортер налаштовано. Завантажте файли конфігурації</p>
+                        
+                        <div class="download-section">
+                            <div class="download-card" onclick="downloadReporter()">
+                                <div class="download-icon">📦</div>
+                                <div class="download-title">custom-reporter.ts</div>
+                                <div class="download-desc">Основний файл репортера</div>
+                            </div>
+                            <div class="download-card" onclick="downloadConfig()">
+                                <div class="download-icon">⚙️</div>
+                                <div class="download-title">playwright.config.ts</div>
+                                <div class="download-desc">Файл конфігурації</div>
+                            </div>
+                            <div class="download-card" onclick="copyToClipboard()">
+                                <div class="download-icon">📋</div>
+                                <div class="download-title">Копіювати конфіг</div>
+                                <div class="download-desc">У буфер обміну</div>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-section">
+                            <div class="preview-title">📝 Інструкція з встановлення</div>
+                            <div class="config-preview">
+<span class="config-key"># 1. Збережіть файли в корені проекту</span>
+- custom-reporter.ts
+- playwright.config.ts
+
+<span class="config-key"># 2. Встановіть Playwright (якщо ще не встановлено)</span>
+npm install --save-dev @playwright/test
+
+<span class="config-key"># 3. Запустіть тести</span>
+npx playwright test
+
+<span class="config-key"># 4. Відкрийте звіт</span>
+open <span class="config-string">${document.getElementById('outputDir')?.value || 'test-results/enterprise-report'}</span>/index.html
+
+<span class="config-key"># Готово! 🎉</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
+                        ← Назад
+                    </button>
+                    <button class="btn-primary" id="nextBtn" onclick="nextStep()">
+                        Далі →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="copy-notification" id="notification">
+        ✅ Скопійовано в буфер обміну!
+    </div>
+    
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+        let selectedTheme = 'light';
+        let logoBase64 = null;
+        
+        // Theme selection
+        document.querySelectorAll('.theme-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTheme = this.dataset.theme;
+            });
+        });
+        
+        // Color picker
+        document.getElementById('primaryColor').addEventListener('input', function(e) {
+            document.getElementById('colorPreview').textContent = e.target.value;
+            document.getElementById('colorPreview').style.background = e.target.value;
+            document.getElementById('colorPreview').style.color = 'white';
+        });
+        
+        // Logo upload
+        document.getElementById('logoUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    logoBase64 = event.target.result;
+                    document.getElementById('logoImage').src = logoBase64;
+                    document.getElementById('logoPreview').style.display = 'block';
+                    showNotification('✅ Логотип завантажено!');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        function removeLogo() {
+            logoBase64 = null;
+            document.getElementById('logoUpload').value = '';
+            document.getElementById('logoPreview').style.display = 'none';
+            showNotification('🗑️ Логотип видалено');
+        }
+        
+        function updateProgress() {
+            document.querySelectorAll('.progress-step').forEach((step, index) => {
+                const stepNum = index + 1;
+                if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                    step.classList.remove('active');
+                } else if (stepNum === currentStep) {
+                    step.classList.add('active');
+                    step.classList.remove('completed');
+                } else {
+                    step.classList.remove('active', 'completed');
+                }
+            });
+            
+            // Update buttons
+            document.getElementById('prevBtn').style.display = currentStep === 1 ? 'none' : 'block';
+            document.getElementById('nextBtn').textContent = currentStep === totalSteps ? 'Завершити 🎉' : 'Далі →';
+            
+            // Update config preview
+            if (currentStep === 3) {
+                updateConfigPreview();
+            }
+        }
+        
+        function nextStep() {
+            if (currentStep === totalSteps) {
+                showNotification('🎉 Налаштування завершено!');
+                return;
+            }
+            
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+            currentStep++;
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+            updateProgress();
+        }
+        
+        function previousStep() {
+            if (currentStep === 1) return;
+            
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+            currentStep--;
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+            updateProgress();
+        }
+        
+        function getConfig() {
+            return {
+                outputDir: document.getElementById('outputDir').value,
+                reportTitle: document.getElementById('reportTitle').value,
+                companyName: document.getElementById('companyName').value,
+                projectName: document.getElementById('projectName').value,
+                theme: selectedTheme,
+                primaryColor: document.getElementById('primaryColor').value,
+                logo: logoBase64,
+                showPassedTests: document.getElementById('showPassed').checked,
+                showSkippedTests: document.getElementById('showSkipped').checked,
+                showEnvironmentInfo: document.getElementById('showEnvInfo').checked,
+                includeScreenshots: document.getElementById('includeScreenshots').checked,
+                includeVideos: document.getElementById('includeVideos').checked,
+                includeTraces: document.getElementById('includeTraces').checked,
+            };
+        }
+        
+        function updateConfigPreview() {
+            const config = getConfig();
+            const preview = document.getElementById('configPreview');
+            
+            preview.innerHTML = `<span class="config-key">const</span> reporterConfig = {
+  <span class="config-key">outputDir:</span> <span class="config-string">'${config.outputDir}'</span>,
+  <span class="config-key">reportTitle:</span> <span class="config-string">'${config.reportTitle}'</span>,
+  <span class="config-key">companyName:</span> <span class="config-string">'${config.companyName}'</span>,
+  <span class="config-key">projectName:</span> <span class="config-string">'${config.projectName}'</span>,
+  <span class="config-key">theme:</span> <span class="config-string">'${config.theme}'</span>,
+  <span class="config-key">primaryColor:</span> <span class="config-string">'${config.primaryColor}'</span>,
+  <span class="config-key">showPassedTests:</span> ${config.showPassedTests},
+  <span class="config-key">showSkippedTests:</span> ${config.showSkippedTests},
+  <span class="config-key">showEnvironmentInfo:</span> ${config.showEnvironmentInfo},
+  <span class="config-key">includeScreenshots:</span> ${config.includeScreenshots},
+  <span class="config-key">includeVideos:</span> ${config.includeVideos},
+  <span class="config-key">includeTraces:</span> ${config.includeTraces},
+};`;
+        }
+        
+        function generateConfigFile() {
+            const config = getConfig();
+            
+            return `import { defineConfig } from '@playwright/test';
+import type { ReporterConfig } from './custom-reporter';
+
+const reporterConfig: ReporterConfig = {
+  outputDir: '${config.outputDir}',
+  reportTitle: '${config.reportTitle}',
+  companyName: '${config.companyName}',
+  projectName: '${config.projectName}',
+  theme: '${config.theme}',
+  primaryColor: '${config.primaryColor}',${config.logo ? `
+  logo: '${config.logo.substring(0, 100)}...', // Base64 logo (скорочено для відображення)` : ''}
+  showPassedTests: ${config.showPassedTests},
+  showSkippedTests: ${config.showSkippedTests},
+  showEnvironmentInfo: ${config.showEnvironmentInfo},
+  includeScreenshots: ${config.includeScreenshots},
+  includeVideos: ${config.includeVideos},
+  includeTraces: ${config.includeTraces},
+  testCategories: ['smoke', 'regression', 'integration', 'e2e'],
+};
+
+export default defineConfig({
+  testDir: './tests',
+  timeout: 30000,
+  workers: process.env.CI ? 2 : undefined,
+  retries: process.env.CI ? 2 : 0,
+  
+  reporter: [
+    ['./custom-reporter.ts', reporterConfig],
+    ['html'],
+    ['list'],
+  ],
+  
+  use: {
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'retain-on-failure',
+  },
+});`;
+        }
+        
+        function generateFullConfigFile() {
+            const config = getConfig();
+            
+            return `import { defineConfig } from '@playwright/test';
+import type { ReporterConfig } from './custom-reporter';
+
+const reporterConfig: ReporterConfig = {
+  outputDir: '${config.outputDir}',
+  reportTitle: '${config.reportTitle}',
+  companyName: '${config.companyName}',
+  projectName: '${config.projectName}',
+  theme: '${config.theme}',
+  primaryColor: '${config.primaryColor}',${config.logo ? `
+  logo: '${config.logo}',` : ''}
+  showPassedTests: ${config.showPassedTests},
+  showSkippedTests: ${config.showSkippedTests},
+  showEnvironmentInfo: ${config.showEnvironmentInfo},
+  includeScreenshots: ${config.includeScreenshots},
+  includeVideos: ${config.includeVideos},
+  includeTraces: ${config.includeTraces},
+  testCategories: ['smoke', 'regression', 'integration', 'e2e'],
+};
+
+export default defineConfig({
+  testDir: './tests',
+  timeout: 30000,
+  workers: process.env.CI ? 2 : undefined,
+  retries: process.env.CI ? 2 : 0,
+  
+  reporter: [
+    ['./custom-reporter.ts', reporterConfig],
+    ['html'],
+    ['list'],
+  ],
+  
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
+        trace: 'retain-on-failure',
+      },
+    },
+    {
+      name: 'firefox',
+      use: {
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
+      },
+    },
+    {
+      name: 'webkit',
+      use: {
+        screenshot: 'only-on-failure',
+      },
+    },
+  ],
+});`;
+        }
+        
+        function downloadConfig() {
+            const content = generateFullConfigFile();
+            downloadFile('playwright.config.ts', content);
+            showNotification('✅ playwright.config.ts завантажено!');
+        }
+        
+        function downloadReporter() {
+            showNotification('ℹ️ Використовуйте custom-reporter.ts з попереднього артефакту');
+        }
+        
+        function copyToClipboard() {
+            const content = generateFullConfigFile();
+            navigator.clipboard.writeText(content).then(() => {
+                showNotification('✅ Конфігурація скопійована!');
+            });
+        }
+        
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/typescript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>

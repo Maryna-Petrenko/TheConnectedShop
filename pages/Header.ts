@@ -1,4 +1,6 @@
 import { Page, expect, Locator } from '@playwright/test';
+import { safeVisible } from '../Utils/GlobalMethods/globalMethods';
+
 export class Header {
     readonly page: Page;
     readonly logoLink: Locator;
@@ -11,12 +13,12 @@ export class Header {
     }
 
     async verifyLogoLink () {
-        await expect(this.logoLink).toBeVisible();
+        await safeVisible(this.logoLink, 'лого посилання');
         await expect(this.logoLink).toHaveAttribute('href', '/');
     }
 
     async verifyLogoImage () {
-        await expect(this.logoImage).toBeVisible();
+        await safeVisible(this.logoImage, 'логотип');
         await expect(this.logoImage).toHaveAttribute('alt', 'The Connected Shop');
     }
 }    

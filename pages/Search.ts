@@ -1,4 +1,7 @@
 import { Page, expect, Locator} from '@playwright/test';
+import { clickElement } from '../Utils/GlobalMethods/globalMethods';
+import { safeVisible } from '../Utils/GlobalMethods/globalMethods';
+
 export class Search {
     readonly page: Page; 
     readonly searchField: Locator;
@@ -20,35 +23,35 @@ export class Search {
     }
 
     async  verifySearchField () {
-        await expect(this.searchField).toBeVisible();
+        //await expect(this.searchField).toBeVisible();
+        await safeVisible(this.searchField, 'поле пошуку')
         await expect(this.searchField).toHaveAttribute('placeholder', 'Search');
     }
     
     async verifyAvatar () {
-        await expect(this.avatar).toBeVisible();
+        await safeVisible(this.avatar, 'аватар');
         await expect(this.avatar).toHaveAttribute('href'); //дописати
     }
 
     async verifyPhoneNumber () {
-        await expect(this.phoneSearch).toBeVisible();
+        await safeVisible(this.phoneSearch, 'номер телефону');
         await expect(this.phoneSearch).toHaveAttribute('href', 'tel:(305) 330-3424');
     }
 
     async verifyCart () {
-        await expect(this.cartSearch).toBeVisible();
+        await safeVisible(this.cartSearch, 'корзина');
         await expect(this.cartSearch).toHaveAttribute('href', '/cart');
     }
 
-    async fillSearchField () {
-        const textToFill = 'Smart Door Lock Slim';
-        const wrongText = 'Maryna Petrenko';
-        await this.searchInput.fill(textToFill);
-        await expect(this.searchInput).toHaveValue(textToFill);
+    async fillSearchField (value: string) {
+        await this.searchInput.fill(value);
+        await expect(this.searchInput).toHaveValue(value);
     }
 
     async chooseFirstElement (){
-        await this.firstElement.first().waitFor();
-        await this.firstElement.first().click();
+        //await this.firstElement.first().waitFor();
+        //await this.firstElement.first().click();
+        await clickElement(this.firstElement, "Стрілочка button")
     }
 }
 

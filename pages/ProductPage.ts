@@ -1,9 +1,11 @@
 import { Page, expect, Locator } from '@playwright/test';
+import { fillText } from '../Utils/GlobalMethods/globalMethods';
+import { searchData } from '../Utils/SearchData';
+
 export class ProductPage {
     readonly page: Page;
     readonly checkSerchField: Locator;
     readonly firstItem: Locator;
-    //readonly textToFill: Text;
     readonly searchInput: Locator;
     readonly alertField: Locator;
     
@@ -17,27 +19,24 @@ export class ProductPage {
 
     //перейшли на сторінку, перевіряємо перевіряємо поле в сьорчі
     async verifySearchField (value: string) {
-        //const textToFill = 'Smart Door Lock Slim';
         await expect(this.checkSerchField).toHaveValue(value);
     }
     
      //знайти перший товар і перевірити тайтл
 
-     async verifyFirstITem () {
-        const textToFill = 'Smart Door Lock Slim';
-        await expect(this.firstItem).toHaveText(textToFill);
+     async verifyFirstITem (value: string) {
+        await expect(this.firstItem).toHaveText(value);
      }
 
      //пошук неіснуючого товару
 
      async verifyUnexistedItem (value: string) {
-       // const wrongText = 'Maryna Petrenko';
-        await this.searchInput.fill(value);
+        //await this.searchInput.fill(value);
+        await fillText(this.searchInput, searchData.wrongText, 'текст')
         await expect(this.searchInput).toHaveValue(value);
      }
 
-     async verifyAlert () {
-        const wrongText = 'Maryna Petrenko';
-        await expect(this.alertField).toHaveText(`No results found for “${wrongText}”. Check the spelling or use a different word or phrase.`);
+     async verifyAlert (value: string) {
+        await expect(this.alertField).toHaveText(`No results found for “${value}”. Check the spelling or use a different word or phrase.`);
      }
 }

@@ -39,16 +39,16 @@ test.describe ('Перевірка елементів головної стор�
 
     test ('Перевірка пошуку', async ({ page }) => {
         await search.verifySearchField();
-        await search.fillSearchField();
+        await search.fillSearchField(searchData.textToFill);
         await search.chooseFirstElement();
         await productPage.verifySearchField (searchData.textToFill);
-        await productPage.verifyFirstITem (); 
+        await productPage.verifyFirstITem (searchData.textToFill); 
     })
 
  
     test ('Перевірка неіснуючого товару', async ({ page }) => { 
         await productPage.verifyUnexistedItem (searchData.wrongText);
         await search.chooseFirstElement ();
-        await productPage.verifyAlert ();
+        await productPage.verifyAlert (searchData.wrongText);
 })
 })
